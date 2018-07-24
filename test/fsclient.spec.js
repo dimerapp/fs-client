@@ -288,7 +288,7 @@ test.group('FsClient', (group) => {
     }
   })
 
-  test('emit add event when dimer.json file is added', (assert, done) => {
+  test.skip('emit add event when dimer.json file is added', (assert, done) => {
     assert.plan(1)
 
     const client = new FsClient(basePath, {
@@ -314,7 +314,7 @@ test.group('FsClient', (group) => {
     })
   }).timeout(10000)
 
-  test('emit add event when new doc is added inside the docs dir', (assert, done) => {
+  test.skip('emit add event when new doc is added inside the docs dir', (assert, done) => {
     assert.plan(2)
 
     const client = new FsClient(basePath, {
@@ -339,7 +339,7 @@ test.group('FsClient', (group) => {
     })
   }).timeout(6000)
 
-  test('emit change event when new doc is changed inside the docs dir', (assert, done) => {
+  test.skip('emit change event when new doc is changed inside the docs dir', (assert, done) => {
     assert.plan(2)
 
     const dimerJSON = join(basePath, 'dimer.json')
@@ -369,7 +369,7 @@ test.group('FsClient', (group) => {
       .catch(done)
   }).timeout(6000)
 
-  test('emit unlink event when new doc is removed', (assert, done) => {
+  test.skip('emit unlink event when new doc is removed', (assert, done) => {
     assert.plan(2)
 
     const dimerJSON = join(basePath, 'dimer.json')
@@ -404,7 +404,7 @@ test.group('FsClient', (group) => {
       .catch(done)
   }).timeout(8000)
 
-  test('emit add event when version was added later', (assert, done) => {
+  test.skip('emit add event when version was added later', (assert, done) => {
     assert.plan(2)
 
     const dimerJSON = join(basePath, 'dimer.json')
