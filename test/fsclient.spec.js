@@ -306,8 +306,8 @@ test.group('FsClient', (group) => {
 
     setTimeout(() => {
       fs.outputJSON(dimerJSON, {})
-    }, 1000)
-  }).timeout(4000)
+    }, 2000)
+  }).timeout(6000)
 
   test('emit add event when new doc is added inside the docs dir', (assert, done) => {
     assert.plan(2)
@@ -329,8 +329,8 @@ test.group('FsClient', (group) => {
 
     setTimeout(() => {
       fs.outputFile(filePath, 'hello')
-    }, 1000)
-  }).timeout(4000)
+    }, 2000)
+  }).timeout(6000)
 
   test('emit change event when new doc is changed inside the docs dir', (assert, done) => {
     assert.plan(2)
@@ -355,10 +355,10 @@ test.group('FsClient', (group) => {
 
         setTimeout(() => {
           fs.outputFile(filePath, 'hello')
-        }, 1000)
+        }, 2000)
       })
       .catch(done)
-  }).timeout(4000)
+  }).timeout(6000)
 
   test('emit unlink event when new doc is removed', (assert, done) => {
     assert.plan(2)
@@ -385,10 +385,10 @@ test.group('FsClient', (group) => {
 
         setTimeout(() => {
           fs.remove(filePath)
-        }, 1000)
+        }, 2000)
       })
       .catch(done)
-  }).timeout(4000)
+  }).timeout(6000)
 
   test('emit add event when version was added later', (assert, done) => {
     assert.plan(2)
@@ -409,6 +409,6 @@ test.group('FsClient', (group) => {
     setTimeout(() => {
       client.watchVersion({ no: '1.0.0', location: 'docs/1.0.0' })
       fs.outputFile(filePath)
-    }, 1000)
-  }).timeout(4000)
+    }, 2000)
+  }).timeout(6000)
 })
