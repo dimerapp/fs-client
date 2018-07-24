@@ -16,9 +16,10 @@
   "author": "virk",
   "license": "MIT",
   "devDependencies": {
-    "@adonisjs/mrm-preset": "^1.0.9",
+    "@adonisjs/mrm-preset": "^1.0.10",
     "commitizen": "^2.10.1",
     "cz-conventional-changelog": "^2.1.0",
+    "fs-extra": "^7.0.0",
     "japa": "^1.0.6",
     "japa-cli": "^1.0.1",
     "mrm": "^1.2.1",
@@ -35,5 +36,12 @@
       "test",
       "japaFile.js"
     ]
+  },
+  "dependencies": {
+    "@dimerapp/dfile": "^1.0.2",
+    "chokidar": "^2.0.4",
+    "debug": "^3.1.0",
+    "klaw": "^2.1.1",
+    "ow": "^0.6.0"
   }
 }
