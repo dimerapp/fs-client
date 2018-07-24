@@ -1,8 +1,11 @@
 {
   "name": "@dimerapp/fs-client",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "The file system client for Dimer offers the API to convert the docs into a tree of versions and docs content",
+  "main": "src/FsClient.js",
+  "files": [
+    "src"
+  ],
   "scripts": {
     "mrm": "mrm --preset=@adonisjs/mrm-preset",
     "pretest": "npm run lint",
@@ -44,5 +47,16 @@
     "debug": "^3.1.0",
     "klaw": "^2.1.1",
     "ow": "^0.6.0"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimerapp/fs-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dimerapp/fs-client/issues"
+  },
+  "homepage": "https://github.com/dimerapp/fs-client#readme"
 }
