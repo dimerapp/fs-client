@@ -294,11 +294,15 @@ class FsClient {
 
     const locations = this.versions.map(({ location }) => join(this.basePath, location))
 
-    this.watcher = new Watcher(configFilePath, locations, {
-      onChange,
-      ignoreEvent: this._ignoreEvent.bind(this),
-      getEventData: this._getEventData.bind(this)
-    })
+    if (!this.watcher) {
+      this.watcher = new Watcher(configFilePath, locations, {
+        onChange,
+        ignoreEvent: this._ignoreEvent.bind(this),
+        getEventData: this._getEventData.bind(this)
+      })
+    }
+
+    this.watcher.hook()
   }
 }
 

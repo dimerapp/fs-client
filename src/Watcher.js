@@ -25,14 +25,24 @@ class Watcher {
     this.onChange = onChange
     this.ignoreEvent = ignoreEvent
     this.getEventData = getEventData
+    this.locations = locations.concat([configFilePath])
+  }
 
-    locations = locations.concat([configFilePath])
-    debug('watching locations %o', locations)
+  /**
+   * Initiate the watcher
+   *
+   * @method hook
+   *
+   * @return {void}
+   */
+  hook () {
+    debug('watching locations %o', this.locations)
 
-    this.chokidar = chokidar.watch(locations, {
+    this.chokidar = chokidar.watch(this.locations, {
       persistent: true,
       usePolling: false,
-      ignoreInitial: true
+      ignoreInitial: true,
+      awaitWriteFinish: true
     }).on('all', this.listener.bind(this))
   }
 
