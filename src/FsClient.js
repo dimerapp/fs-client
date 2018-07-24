@@ -122,14 +122,6 @@ class FsClient {
    */
   _ignoreEvent (event, path) {
     /**
-     * Directory was removed
-     */
-    if (event === 'unlinkDir') {
-      this.unwatchVersion(path)
-      return true
-    }
-
-    /**
      * Ignore when file is not markdown
      */
     if (this.markdownExtensions.indexOf(extname(path)) === -1) {
@@ -139,7 +131,7 @@ class FsClient {
     /**
      * Finally ignore when event is not in one of the following events
      */
-    return ['add', 'change', 'unlink'].indexOf(event) === -1
+    return ['add', 'change', 'unlink', 'unlinkDir'].indexOf(event) === -1
   }
 
   /**
@@ -155,6 +147,11 @@ class FsClient {
    * @private
    */
   async _getEventData (event, path) {
+    if (event === 'unlinkDir') {
+      const version = this.unwatchVersion(path)
+      return version ? { event: 'unlink:version', data: version } : { event, data: path }
+    }
+
     if (['add', 'change'].indexOf(event) > -1) {
       const version = this._getFileVersion(path)
       if (!version) {
@@ -163,10 +160,10 @@ class FsClient {
 
       const file = new Dfile(path, join(this.basePath, version.location))
       await file.parse()
-      return { version, file }
+      return { event, data: { version, file } }
     }
 
-    return path
+    return { event, data: path }
   }
 
   /**
@@ -222,7 +219,7 @@ class FsClient {
    *
    * @param  {String}       location
    *
-   * @return {void}
+   * @return {Object|Null}
    */
   unwatchVersion (location) {
     ow(location, ow.string.label('location').nonEmpty)
@@ -237,7 +234,10 @@ class FsClient {
     if (version) {
       debug('unwatch version %s', version.no)
       this.watcher.unwatch(location)
+      return version
     }
+
+    return null
   }
 
   /**

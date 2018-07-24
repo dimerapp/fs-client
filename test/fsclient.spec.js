@@ -206,21 +206,6 @@ test.group('FsClient', (group) => {
     assert.isTrue(client._ignoreEvent('addDir', ''))
   })
 
-  test('return true from ignoreEvent is unlinkDir and also invoke unwatchVersion', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: []
-    })
-
-    let invoked = false
-
-    client.unwatchVersion = function () {
-      invoked = true
-    }
-
-    assert.isTrue(client._ignoreEvent('unlinkDir', ''))
-    assert.isTrue(invoked)
-  })
-
   test('return true from ignoreEvent when file path is not markdown', async (assert) => {
     const client = new FsClient(basePath, {
       versions: []
@@ -244,10 +229,11 @@ test.group('FsClient', (group) => {
       versions: [{ no: '1.0.0', location: 'docs/master' }]
     })
 
-    const { version, file } = await client._getEventData('add', join(basePath, 'docs/master', 'intro.md'))
-    assert.deepEqual(version, { no: '1.0.0', location: 'docs/master' })
-    assert.equal(file.baseName, 'intro.md')
-    assert.equal(file.filePath, join(basePath, 'docs/master', 'intro.md'))
+    const { event, data } = await client._getEventData('add', join(basePath, 'docs/master', 'intro.md'))
+    assert.deepEqual(data.version, { no: '1.0.0', location: 'docs/master' })
+    assert.equal(data.file.baseName, 'intro.md')
+    assert.equal(data.file.filePath, join(basePath, 'docs/master', 'intro.md'))
+    assert.equal(event, 'add')
   })
 
   test('return file & version for change event', async (assert) => {
@@ -257,10 +243,38 @@ test.group('FsClient', (group) => {
       versions: [{ no: '1.0.0', location: 'docs/master' }]
     })
 
-    const { version, file } = await client._getEventData('change', join(basePath, 'docs/master', 'intro.md'))
-    assert.deepEqual(version, { no: '1.0.0', location: 'docs/master' })
-    assert.equal(file.baseName, 'intro.md')
-    assert.equal(file.filePath, join(basePath, 'docs/master', 'intro.md'))
+    const { event, data } = await client._getEventData('change', join(basePath, 'docs/master', 'intro.md'))
+    assert.deepEqual(data.version, { no: '1.0.0', location: 'docs/master' })
+    assert.equal(data.file.baseName, 'intro.md')
+    assert.equal(data.file.filePath, join(basePath, 'docs/master', 'intro.md'))
+    assert.equal(event, 'change')
+  })
+
+  test('return version node for unlinkDir event, when directory is version root', async (assert) => {
+    await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'hello world')
+
+    const client = new FsClient(basePath, {
+      versions: [{ no: '1.0.0', location: 'docs/master' }]
+    })
+    client.watcher = new FakeWatcher()
+
+    const { event, data } = await client._getEventData('unlinkDir', join(basePath, 'docs/master'))
+    assert.deepEqual(data, { no: '1.0.0', location: 'docs/master' })
+    assert.equal(event, 'unlink:version')
+    assert.deepEqual(client.watcher.actions, [{ action: 'unwatch', dir: join(basePath, 'docs/master') }])
+  })
+
+  test('return path for unlinkDir event, when directory is not version root', async (assert) => {
+    await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'hello world')
+
+    const client = new FsClient(basePath, {
+      versions: [{ no: '1.0.0', location: 'docs/master' }]
+    })
+    client.watcher = new FakeWatcher()
+
+    const { event, data: filePath } = await client._getEventData('unlinkDir', join(basePath, 'docs/master/intro'))
+    assert.equal(filePath, join(basePath, 'docs/master/intro'))
+    assert.equal(event, 'unlinkDir')
   })
 
   test('return path for unlink event', async (assert) => {
@@ -270,8 +284,9 @@ test.group('FsClient', (group) => {
       versions: [{ no: '1.0.0', location: 'docs/master' }]
     })
 
-    const filePath = await client._getEventData('unlink', join(basePath, 'docs/master', 'intro.md'))
+    const { event, data: filePath } = await client._getEventData('unlink', join(basePath, 'docs/master', 'intro.md'))
     assert.equal(filePath, join(basePath, 'docs/master', 'intro.md'))
+    assert.equal(event, 'unlink')
   })
 
   test('throw error when changed file is not part of the version tree', async (assert) => {

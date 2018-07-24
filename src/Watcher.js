@@ -121,10 +121,12 @@ class Watcher {
     }
 
     try {
-      const data = await this.getEventData(event, path)
-      this.onChange(event, data)
+      const { event: newEvent, data } = await this.getEventData(event, path)
+      await this.onChange(newEvent, data)
     } catch (error) {
-      this.onChange('error', error)
+      try {
+        await this.onChange('error', error)
+      } catch (err) {}
     }
   }
 }
