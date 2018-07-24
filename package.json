@@ -1,0 +1,62 @@
+{
+  "name": "@dimerapp/fs-client",
+  "version": "1.0.0",
+  "description": "The file system client for Dimer offers the API to convert the docs into a tree of versions and docs content",
+  "main": "src/FsClient.js",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "mrm": "mrm --preset=@adonisjs/mrm-preset",
+    "pretest": "npm run lint",
+    "test": "japa",
+    "commit": "git-cz",
+    "test:win": "node ./node_modules/japa-cli/index.js",
+    "lint": "standard"
+  },
+  "keywords": [
+    "dimer"
+  ],
+  "author": "virk",
+  "license": "MIT",
+  "devDependencies": {
+    "@adonisjs/mrm-preset": "^1.0.10",
+    "commitizen": "^2.10.1",
+    "cz-conventional-changelog": "^2.1.0",
+    "fs-extra": "^7.0.0",
+    "japa": "^1.0.6",
+    "japa-cli": "^1.0.1",
+    "mrm": "^1.2.1",
+    "pkg-ok": "^2.2.0",
+    "standard": "^11.0.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "nyc": {
+    "exclude": [
+      "test",
+      "japaFile.js"
+    ]
+  },
+  "dependencies": {
+    "@dimerapp/dfile": "^1.0.2",
+    "chokidar": "^2.0.4",
+    "debug": "^3.1.0",
+    "klaw": "^2.1.1",
+    "ow": "^0.6.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimerapp/fs-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dimerapp/fs-client/issues"
+  },
+  "homepage": "https://github.com/dimerapp/fs-client#readme"
+}
