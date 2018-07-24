@@ -183,7 +183,7 @@ class FsClient {
    */
   _getFileVersion (location) {
     location = location.replace(`${this.basePath}${sep}`, '')
-    return this.versions.find((version) => location.startsWith(`${version.location}${sep}`))
+    return this.versions.find((version) => location.startsWith(`${normalize(version.location)}${sep}`))
   }
 
   /**
