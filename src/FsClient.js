@@ -9,6 +9,7 @@
 
 const klaw = require('klaw')
 const { extname, join, normalize, sep } = require('path')
+const fs = require('fs-extra')
 const Dfile = require('@dimerapp/dfile')
 const ow = require('ow')
 const debug = require('debug')('dimer:fsclient')
@@ -68,15 +69,25 @@ class FsClient {
   _versionTree (version) {
     return new Promise((resolve, reject) => {
       const filesTree = []
+      const versionBaseDir = join(this.basePath, version.location)
 
-      klaw(join(this.basePath, version.location))
-        .on('data', (item) => {
-          if (this._isMarkdownFile(item)) {
-            filesTree.push(item.path)
+      fs
+        .exists(versionBaseDir)
+        .then((exists) => {
+          if (!exists) {
+            throw new Error(`Directory ${version.location} referenced by ${version.no} doesn't exists`)
           }
+
+          klaw(versionBaseDir)
+            .on('data', (item) => {
+              if (this._isMarkdownFile(item)) {
+                filesTree.push(item.path)
+              }
+            })
+            .on('end', () => (resolve({ filesTree, version })))
+            .on('error', reject)
         })
-        .on('end', () => (resolve({ filesTree, version })))
-        .on('error', reject)
+        .catch(reject)
     })
   }
 

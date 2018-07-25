@@ -33,6 +33,20 @@ test.group('FsClient', (group) => {
     await fs.remove(basePath)
   })
 
+  test('raise error when version directory is missing', async (assert) => {
+    assert.plan(1)
+
+    const client = new FsClient(basePath, {
+      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
+    })
+
+    try {
+      await client.tree()
+    } catch ({ message }) {
+      assert.equal(message, `Directory docs/1.0.0 referenced by 1.0.0 doesn't exists`)
+    }
+  })
+
   test('return an array of markdown files', async (assert) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'Hello')
     await fs.outputFile(join(basePath, 'docs/master', 'intro.txt'), 'Hello')
