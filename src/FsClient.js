@@ -126,6 +126,10 @@ class FsClient {
    * @private
    */
   _ignoreEvent (event, path) {
+    if (event === 'unlinkDir') {
+      return false
+    }
+
     /**
      * Ignore when file is not markdown
      */
@@ -136,7 +140,7 @@ class FsClient {
     /**
      * Finally ignore when event is not in one of the following events
      */
-    return ['add', 'change', 'unlink', 'unlinkDir'].indexOf(event) === -1
+    return ['add', 'change', 'unlink'].indexOf(event) === -1
   }
 
   /**
@@ -353,7 +357,7 @@ class FsClient {
     ow(configFilePath, ow.string.label('configFilePath').nonEmpty)
     ow(onChange, ow.function)
 
-    const locations = this.versions.map(({ location }) => location)
+    const locations = this.versions.map(({ absPath }) => absPath)
 
     if (!this.watcher) {
       this.watcher = new Watcher(configFilePath, locations, {
