@@ -41,8 +41,9 @@ class Watcher {
     this.chokidar = chokidar.watch(this.locations, {
       persistent: true,
       usePolling: false,
+      cwd: null,
       ignoreInitial: true,
-      awaitWriteFinish: true
+      awaitWriteFinish: false
     }).on('all', this.listener.bind(this))
   }
 
