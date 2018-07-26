@@ -65,7 +65,8 @@ test.group('FsClient', (group) => {
       {
         version: {
           location: 'docs/master',
-          no: '1.0.0'
+          no: '1.0.0',
+          absPath: join(basePath, 'docs/master')
         },
         filesTree: [join(basePath, 'docs/master', 'intro.md')]
       }
@@ -89,12 +90,13 @@ test.group('FsClient', (group) => {
     const tree = await client.tree()
 
     assert.lengthOf(tree, 1)
-    assert.deepEqual(tree.toJSON()[0].version, {
+    assert.deepEqual(tree[0].version, {
       location: 'docs/master',
-      no: '1.0.0'
+      no: '1.0.0',
+      absPath: join(basePath, 'docs/master')
     })
 
-    assert.deepEqual(tree.toJSON()[0].tree.map((file) => file.filePath), [
+    assert.deepEqual(tree[0].tree.map((file) => file.filePath), [
       join(basePath, 'docs/master', 'hello.md'),
       join(basePath, 'docs/master', 'intro.md')
     ])
@@ -124,7 +126,12 @@ test.group('FsClient', (group) => {
       location: 'docs/master'
     })
 
-    assert.deepEqual(client.versions, [{ no: '1.0.0', location: 'docs/master' }])
+    assert.deepEqual(client.versions, [{
+      no: '1.0.0',
+      location: 'docs/master',
+      absPath: join(basePath, 'docs/master')
+    }])
+
     assert.deepEqual(client.watcher.actions, [{ action: 'watch', dir: join(basePath, 'docs/master') }])
   })
 
@@ -140,7 +147,12 @@ test.group('FsClient', (group) => {
       location: 'docs/master'
     })
 
-    assert.deepEqual(client.versions, [{ no: '1.0.0', location: 'docs/master' }])
+    assert.deepEqual(client.versions, [{
+      no: '1.0.0',
+      location: 'docs/master',
+      absPath: join(basePath, 'docs/master')
+    }])
+
     assert.deepEqual(client.watcher.actions, [{ action: 'watch', dir: join(basePath, 'docs/master') }])
   })
 
@@ -162,21 +174,13 @@ test.group('FsClient', (group) => {
 
     client.unwatchVersion(join(basePath, 'docs/1.0.0'))
 
-    assert.deepEqual(client.versions, [{ no: '1.0.0', location: 'docs/1.0.0' }])
+    assert.deepEqual(client.versions, [{
+      no: '1.0.0',
+      location: 'docs/1.0.0',
+      absPath: join(basePath, 'docs/1.0.0')
+    }])
+
     assert.deepEqual(client.watcher.actions, [{ action: 'unwatch', dir: join(basePath, 'docs/1.0.0') }])
-  })
-
-  test('do not remove version when remove directory is not the base directory', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
-    })
-
-    client.watcher = new FakeWatcher()
-
-    client.unwatchVersion(join(basePath, 'docs/1.0.0/intro'))
-
-    assert.deepEqual(client.versions, [{ no: '1.0.0', location: 'docs/1.0.0' }])
-    assert.deepEqual(client.watcher.actions, [])
   })
 
   test('return the version for a given file path', async (assert) => {
@@ -187,7 +191,8 @@ test.group('FsClient', (group) => {
     client.watcher = new FakeWatcher()
     assert.deepEqual(client._getFileVersion(join(basePath, 'docs/1.0.0/intro.md')), {
       no: '1.0.0',
-      location: 'docs/1.0.0'
+      location: 'docs/1.0.0',
+      absPath: join(basePath, 'docs/1.0.0')
     })
   })
 
@@ -208,7 +213,8 @@ test.group('FsClient', (group) => {
     client.watcher = new FakeWatcher()
     assert.deepEqual(client._getFileVersion(join(basePath, 'docs/masternew/intro.md')), {
       no: '1.0.0',
-      location: 'docs/masternew'
+      location: 'docs/masternew',
+      absPath: join(basePath, 'docs/masternew')
     })
   })
 
@@ -244,10 +250,16 @@ test.group('FsClient', (group) => {
     })
 
     const { event, data } = await client._getEventData('add', join(basePath, 'docs/master', 'intro.md'))
-    assert.deepEqual(data.version, { no: '1.0.0', location: 'docs/master' })
+
+    assert.deepEqual(data.version, {
+      no: '1.0.0',
+      location: 'docs/master',
+      absPath: join(basePath, 'docs/master')
+    })
+
     assert.equal(data.file.baseName, 'intro.md')
     assert.equal(data.file.filePath, join(basePath, 'docs/master', 'intro.md'))
-    assert.equal(event, 'add')
+    assert.equal(event, 'add:doc')
   })
 
   test('return file & version for change event', async (assert) => {
@@ -258,10 +270,16 @@ test.group('FsClient', (group) => {
     })
 
     const { event, data } = await client._getEventData('change', join(basePath, 'docs/master', 'intro.md'))
-    assert.deepEqual(data.version, { no: '1.0.0', location: 'docs/master' })
+
+    assert.deepEqual(data.version, {
+      no: '1.0.0',
+      location: 'docs/master',
+      absPath: join(basePath, 'docs/master')
+    })
+
     assert.equal(data.file.baseName, 'intro.md')
     assert.equal(data.file.filePath, join(basePath, 'docs/master', 'intro.md'))
-    assert.equal(event, 'change')
+    assert.equal(event, 'change:doc')
   })
 
   test('return version node for unlinkDir event, when directory is version root', async (assert) => {
@@ -273,7 +291,13 @@ test.group('FsClient', (group) => {
     client.watcher = new FakeWatcher()
 
     const { event, data } = await client._getEventData('unlinkDir', join(basePath, 'docs/master'))
-    assert.deepEqual(data, { no: '1.0.0', location: 'docs/master' })
+
+    assert.deepEqual(data, {
+      no: '1.0.0',
+      location: 'docs/master',
+      absPath: join(basePath, 'docs/master')
+    })
+
     assert.equal(event, 'unlink:version')
     assert.deepEqual(client.watcher.actions, [{ action: 'unwatch', dir: join(basePath, 'docs/master') }])
   })
@@ -291,16 +315,17 @@ test.group('FsClient', (group) => {
     assert.equal(event, 'unlinkDir')
   })
 
-  test('return path for unlink event', async (assert) => {
+  test('return version and baseName for unlink event', async (assert) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'hello world')
 
     const client = new FsClient(basePath, {
       versions: [{ no: '1.0.0', location: 'docs/master' }]
     })
 
-    const { event, data: filePath } = await client._getEventData('unlink', join(basePath, 'docs/master', 'intro.md'))
-    assert.equal(filePath, join(basePath, 'docs/master', 'intro.md'))
-    assert.equal(event, 'unlink')
+    const { event, data } = await client._getEventData('unlink', join(basePath, 'docs/master', 'intro.md'))
+    assert.equal(data.baseName, 'intro.md')
+    assert.equal(data.version.no, '1.0.0')
+    assert.equal(event, 'unlink:doc')
   })
 
   test('throw error when changed file is not part of the version tree', async (assert) => {

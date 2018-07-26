@@ -8,11 +8,12 @@
 */
 
 const klaw = require('klaw')
-const { extname, join, normalize, sep } = require('path')
+const { extname, normalize, sep } = require('path')
 const fs = require('fs-extra')
 const Dfile = require('@dimerapp/dfile')
 const ow = require('ow')
 const debug = require('debug')('dimer:fsclient')
+const utils = require('@dimerapp/utils')
 
 const Tree = require('./Tree')
 const Watcher = require('./Watcher')
@@ -28,10 +29,12 @@ const Watcher = require('./Watcher')
  */
 class FsClient {
   constructor (basePath, config) {
-    this.basePath = basePath
-    this.versions = config.versions
+    this.paths = utils.paths(basePath)
+    this.versions = []
     this.markdownExtensions = ['.md', '.markdown']
     this.watcher = null
+
+    config.versions.forEach((version) => (this.addVersion(version)))
   }
 
   /**
@@ -69,16 +72,15 @@ class FsClient {
   _versionTree (version) {
     return new Promise((resolve, reject) => {
       const filesTree = []
-      const versionBaseDir = join(this.basePath, version.location)
 
       fs
-        .exists(versionBaseDir)
+        .exists(version.absPath)
         .then((exists) => {
           if (!exists) {
             throw new Error(`Directory ${version.location} referenced by ${version.no} doesn't exists`)
           }
 
-          klaw(versionBaseDir)
+          klaw(version.absPath)
             .on('data', (item) => {
               if (this._isMarkdownFile(item)) {
                 filesTree.push(item.path)
@@ -104,18 +106,10 @@ class FsClient {
    * @private
    */
   async _versionContentTree ({ version, filesTree }) {
-    const treeInstance = new Tree(join(this.basePath, version.location), filesTree)
+    const treeInstance = new Tree(version.absPath, filesTree)
+
     const tree = await treeInstance.process()
-    return {
-      version,
-      tree,
-      toJSON () {
-        return {
-          version: this.version,
-          tree: this.tree.map((file) => file.toJSON())
-        }
-      }
-    }
+    return { version, tree }
   }
 
   /**
@@ -158,22 +152,58 @@ class FsClient {
    * @private
    */
   async _getEventData (event, path) {
+    path = normalize(path)
+
+    /**
+     * Directory was removed. If directory is the base path
+     * to a version, then we will emit `unlink:version`
+     * event.
+     */
     if (event === 'unlinkDir') {
-      const version = this.unwatchVersion(path)
-      return version ? { event: 'unlink:version', data: version } : { event, data: path }
+      const version = this._getVersionForPath(path)
+      if (version) {
+        this.unwatchVersion(path)
+        return { event: 'unlink:version', data: version }
+      }
     }
 
+    /**
+     * If event is unlink, then we should look for that
+     * path version and return the `version` along
+     * with file baseName
+     */
+    if (event === 'unlink') {
+      const version = this._getFileVersion(path)
+      if (!version) {
+        throw new Error(`${path} file is not part of version tree`)
+      }
+
+      return {
+        event: 'unlink:doc',
+        data: { version, baseName: path.replace(`${version.absPath}${sep}`, '') }
+      }
+    }
+
+    /**
+     * If file is changed, then look for the file version and
+     * return the dFile instance.
+     */
     if (['add', 'change'].indexOf(event) > -1) {
       const version = this._getFileVersion(path)
       if (!version) {
         throw new Error(`${path} file is not part of version tree`)
       }
 
-      const file = new Dfile(path, join(this.basePath, version.location))
+      const file = new Dfile(path, version.absPath)
       await file.parse()
-      return { event, data: { version, file } }
+
+      return { event: `${event}:doc`, data: { version, file } }
     }
 
+    /**
+     * We shouldn't reach here, if we do then return the
+     * data as it is
+     */
     return { event, data: path }
   }
 
@@ -190,8 +220,45 @@ class FsClient {
    * @private
    */
   _getFileVersion (location) {
-    location = location.replace(`${this.basePath}${sep}`, '')
-    return this.versions.find((version) => location.startsWith(`${normalize(version.location)}${sep}`))
+    return this.versions.find((version) => location.startsWith(`${version.absPath}${sep}`))
+  }
+
+  /**
+   * Returns the version if it's absPath is same as the location
+   *
+   * @method _getVersionForPath
+   *
+   * @param  {String}           location
+   *
+   * @return {Object|Undefined}
+   */
+  _getVersionForPath (location) {
+    return this.versions.find((version) => location === version.absPath)
+  }
+
+  /**
+   * Add version to the versions list. Also adds `absPath`
+   * to the version node.
+   *
+   * @method addVersion
+   *
+   * @param  {Object}   version
+   *
+   * @return {Object}
+   */
+  addVersion (version) {
+    const location = this.paths.versionDocsPath(version.location)
+    version = Object.assign({ absPath: location }, version)
+
+    const existingVersion = this.versions.find((v) => v.no === version.no)
+
+    if (!existingVersion) {
+      this.versions.push(version)
+    } else {
+      Object.assign(existingVersion, version)
+    }
+
+    return version
   }
 
   /**
@@ -230,7 +297,7 @@ class FsClient {
    *
    * @param  {String}       location
    *
-   * @return {Object|Null}
+   * @return {void}
    */
   unwatchVersion (location) {
     ow(location, ow.string.label('location').nonEmpty)
@@ -240,15 +307,7 @@ class FsClient {
     }
 
     debug('attempt to unwatch location %s', location)
-    const version = this.versions.find((version) => normalize(location) === join(this.basePath, version.location))
-
-    if (version) {
-      debug('unwatch version %s', version.no)
-      this.watcher.unwatch(location)
-      return version
-    }
-
-    return null
+    this.watcher.unwatch(location)
   }
 
   /**
@@ -269,17 +328,8 @@ class FsClient {
       throw new Error('make sure to start the watcher before calling watchVersion')
     }
 
-    const existingVersion = this.versions.find((v) => v.no === version.no)
-
-    if (!existingVersion) {
-      debug('watching new version %s', version.no)
-      this.versions.push(version)
-    } else {
-      debug('add existing version to watchers list %s', version.no)
-      Object.assign(existingVersion, version)
-    }
-
-    this.watcher.watch(join(this.basePath, version.location))
+    const addedVersion = this.addVersion(version)
+    this.watcher.watch(addedVersion.absPath)
   }
 
   /**
@@ -303,7 +353,7 @@ class FsClient {
     ow(configFilePath, ow.string.label('configFilePath').nonEmpty)
     ow(onChange, ow.function)
 
-    const locations = this.versions.map(({ location }) => join(this.basePath, location))
+    const locations = this.versions.map(({ location }) => location)
 
     if (!this.watcher) {
       this.watcher = new Watcher(configFilePath, locations, {
