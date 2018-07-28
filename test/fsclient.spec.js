@@ -10,6 +10,9 @@
 const test = require('japa')
 const { join } = require('path')
 const fs = require('fs-extra')
+const isCI = require('is-ci')
+
+const skip = (...args) => isCI ? test.skip(...args) : test(...args)
 
 const FsClient = require('../src/FsClient')
 const basePath = join(__dirname, 'app')
@@ -342,7 +345,7 @@ test.group('FsClient', (group) => {
     }
   })
 
-  test.skip('emit add event when dimer.json file is added', (assert, done) => {
+  skip('emit add event when dimer.json file is added', (assert, done) => {
     assert.plan(1)
 
     const client = new FsClient(basePath, {
@@ -351,7 +354,7 @@ test.group('FsClient', (group) => {
 
     const dimerJSON = join(basePath, 'dimer.json')
 
-    client.watch(dimerJSON, function (event) {
+    client.watch(function (event) {
       client.watcher.close()
 
       done(() => {
@@ -360,43 +363,38 @@ test.group('FsClient', (group) => {
     })
 
     client.watcher.chokidar.once('ready', () => {
-      console.log('ready')
       setTimeout(() => {
-        console.log('creating file')
         fs.outputJSON(dimerJSON, {})
       }, 3500)
     })
   }).timeout(10000)
 
-  test.skip('emit add event when new doc is added inside the docs dir', (assert, done) => {
+  skip('emit add event when new doc is added inside the docs dir', (assert, done) => {
     assert.plan(2)
 
     const client = new FsClient(basePath, {
       versions: [{ no: '1.0.0', location: 'docs/master' }]
     })
 
-    const dimerJSON = join(basePath, 'dimer.json')
     const filePath = join(basePath, 'docs/master', 'intro.md')
 
-    client.watch(dimerJSON, function (event, { file }) {
+    client.watch(function (event, { file }) {
       client.watcher.close()
 
       done(() => {
-        assert.equal(event, 'add')
+        assert.equal(event, 'add:doc')
         assert.equal(file.filePath, filePath)
       })
     })
 
     client.watcher.chokidar.once('ready', () => {
-      console.log('ready')
       fs.outputFile(filePath, 'hello')
     })
   }).timeout(6000)
 
-  test.skip('emit change event when new doc is changed inside the docs dir', (assert, done) => {
+  skip('emit change event when new doc is changed inside the docs dir', (assert, done) => {
     assert.plan(2)
 
-    const dimerJSON = join(basePath, 'dimer.json')
     const filePath = join(basePath, 'docs/master', 'intro.md')
 
     const client = new FsClient(basePath, {
@@ -406,27 +404,23 @@ test.group('FsClient', (group) => {
     fs
       .outputFile(filePath, 'hello')
       .then(() => {
-        client.watch(dimerJSON, function (event, { file }) {
+        client.watch(function (event, { file }) {
           client.watcher.close()
 
           done(() => {
-            assert.equal(event, 'change')
+            assert.equal(event, 'change:doc')
             assert.equal(file.filePath, filePath)
           })
         })
 
         client.watcher.chokidar.once('ready', () => {
-          console.log('ready')
           fs.outputFile(filePath, 'hello')
         })
       })
       .catch(done)
   }).timeout(6000)
 
-  test.skip('emit unlink event when new doc is removed', (assert, done) => {
-    assert.plan(2)
-
-    const dimerJSON = join(basePath, 'dimer.json')
+  skip('emit unlink event when new doc is removed', (assert, done) => {
     const filePath = join(basePath, 'docs/master', 'intro.md')
 
     const client = new FsClient(basePath, {
@@ -436,20 +430,16 @@ test.group('FsClient', (group) => {
     fs
       .outputFile(filePath, 'hello')
       .then(() => {
-        client.watch(dimerJSON, function (event, path) {
-          if (event === 'unlink') {
-            console.log('attempting to call done')
+        client.watch(function (event, arg) {
+          if (event === 'unlink:doc') {
             done(() => {
-              console.log('calling done')
-              assert.equal(event, 'unlink')
-              assert.equal(path, filePath)
+              assert.equal(arg.baseName, 'intro.md')
               client.watcher.close()
             })
           }
         })
 
         client.watcher.chokidar.once('ready', () => {
-          console.log('ready')
           setTimeout(() => {
             fs.remove(filePath)
           }, 100)
@@ -458,25 +448,23 @@ test.group('FsClient', (group) => {
       .catch(done)
   }).timeout(8000)
 
-  test.skip('emit add event when version was added later', (assert, done) => {
+  skip('emit add event when version was added later', (assert, done) => {
     assert.plan(2)
 
-    const dimerJSON = join(basePath, 'dimer.json')
     const filePath = join(basePath, 'docs/1.0.0', 'intro.md')
 
     const client = new FsClient(basePath, { versions: [] })
 
-    client.watch(dimerJSON, function (event, { file }) {
+    client.watch(function (event, { file }) {
       client.watcher.close()
 
       done(() => {
-        assert.equal(event, 'add')
+        assert.equal(event, 'add:doc')
         assert.equal(file.filePath, filePath)
       })
     })
 
     client.watcher.chokidar.once('ready', () => {
-      console.log('ready')
       client.watchVersion({ no: '1.0.0', location: 'docs/1.0.0' })
       fs.outputFile(filePath)
     })
