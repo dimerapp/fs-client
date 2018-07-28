@@ -42,7 +42,7 @@
     ]
   },
   "dependencies": {
-    "@dimerapp/dfile": "^1.0.3",
+    "@dimerapp/dfile": "^1.0.6",
     "@dimerapp/utils": "^1.0.0",
     "chokidar": "^2.0.4",
     "debug": "^3.1.0",
