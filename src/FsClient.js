@@ -348,19 +348,17 @@ class FsClient {
    *
    * @method watch
    *
-   * @param  {String}   configFilePath
    * @param  {Function} onChange
    *
    * @return {void}
    */
-  watch (configFilePath, onChange) {
-    ow(configFilePath, ow.string.label('configFilePath').nonEmpty)
+  watch (onChange) {
     ow(onChange, ow.function)
 
     const locations = this.versions.map(({ absPath }) => absPath)
 
     if (!this.watcher) {
-      this.watcher = new Watcher(configFilePath, locations, {
+      this.watcher = new Watcher(this.paths.configFile(), locations, {
         onChange,
         ignoreEvent: this._ignoreEvent.bind(this),
         getEventData: this._getEventData.bind(this)
