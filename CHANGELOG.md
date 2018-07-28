@@ -1,3 +1,18 @@
+<a name="1.0.4"></a>
+## [1.0.4](https://github.com/dimerapp/fs-client/compare/v1.0.3...v1.0.4) (2018-07-28)
+
+
+### Code Refactoring
+
+* **watcher:** client.watch doesn't accept dimer.json path ([b0e0f7d](https://github.com/dimerapp/fs-client/commit/b0e0f7d))
+
+
+### BREAKING CHANGES
+
+* **watcher:** dimer.watch accepts a single argument, which is a callback
+
+
+
 <a name="1.0.3"></a>
 ## [1.0.3](https://github.com/dimerapp/fs-client/compare/v1.0.2...v1.0.3) (2018-07-26)
 
