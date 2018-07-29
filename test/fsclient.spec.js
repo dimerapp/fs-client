@@ -76,6 +76,61 @@ test.group('FsClient', (group) => {
     ])
   })
 
+  test('ignore files starting with underscore', async (assert) => {
+    await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'Hello')
+    await fs.outputFile(join(basePath, 'docs/master', '_foo.md'), 'Hello')
+
+    const client = new FsClient(basePath, {
+      versions: [
+        {
+          no: '1.0.0',
+          location: 'docs/master'
+        }
+      ]
+    })
+
+    const filesTree = await client.filesTree()
+    assert.deepEqual(filesTree, [
+      {
+        version: {
+          location: 'docs/master',
+          no: '1.0.0',
+          absPath: join(basePath, 'docs/master')
+        },
+        filesTree: [join(basePath, 'docs/master', 'intro.md')]
+      }
+    ])
+  })
+
+  test('check for _ only in base name', async (assert) => {
+    await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'Hello')
+    await fs.outputFile(join(basePath, 'docs/master', '_intro/foo.md'), 'Hello')
+
+    const client = new FsClient(basePath, {
+      versions: [
+        {
+          no: '1.0.0',
+          location: 'docs/master'
+        }
+      ]
+    })
+
+    const filesTree = await client.filesTree()
+    assert.deepEqual(filesTree, [
+      {
+        version: {
+          location: 'docs/master',
+          no: '1.0.0',
+          absPath: join(basePath, 'docs/master')
+        },
+        filesTree: [
+          join(basePath, 'docs/master', 'intro.md'),
+          join(basePath, 'docs/master', '_intro/foo.md')
+        ]
+      }
+    ])
+  })
+
   test('return an array of markdown content', async (assert) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'Hi')
     await fs.outputFile(join(basePath, 'docs/master', 'intro.txt'), 'Hello')

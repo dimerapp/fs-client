@@ -1,6 +1,6 @@
 {
   "name": "@dimerapp/fs-client",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "The file system client for Dimer offers the API to convert the docs into a tree of versions and docs content",
   "main": "src/FsClient.js",
   "files": [
@@ -43,8 +43,8 @@
     ]
   },
   "dependencies": {
-    "@dimerapp/dfile": "^1.0.6",
-    "@dimerapp/utils": "^1.0.0",
+    "@dimerapp/dfile": "^1.0.7",
+    "@dimerapp/utils": "^1.0.2",
     "chokidar": "^2.0.4",
     "debug": "^3.1.0",
     "klaw": "^2.1.1",
