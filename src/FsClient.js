@@ -8,7 +8,7 @@
 */
 
 const klaw = require('klaw')
-const { extname, normalize, sep } = require('path')
+const { extname, normalize, sep, basename } = require('path')
 const fs = require('fs-extra')
 const Dfile = require('@dimerapp/dfile')
 const ow = require('ow')
@@ -38,10 +38,10 @@ class FsClient {
   }
 
   /**
-   * Returns a boolean telling if file is a markdown file
-   * or not
+   * Returns a boolean telling if file should be processed
+   * as a markup file or not
    *
-   * @method _isMarkdownFile
+   * @method _useFile
    *
    * @param  {String}        item
    *
@@ -49,8 +49,12 @@ class FsClient {
    *
    * @private
    */
-  _isMarkdownFile (item) {
+  _useFile (item) {
     if (item.stats.isDirectory()) {
+      return false
+    }
+
+    if (basename(item.path).startsWith('_')) {
       return false
     }
 
@@ -82,7 +86,7 @@ class FsClient {
 
           klaw(version.absPath)
             .on('data', (item) => {
-              if (this._isMarkdownFile(item)) {
+              if (this._useFile(item)) {
                 filesTree.push(item.path)
               }
             })
@@ -131,9 +135,9 @@ class FsClient {
     }
 
     /**
-     * Ignore when file is not markdown
+     * Ignore when file is not markdown or is a draft
      */
-    if (this.markdownExtensions.indexOf(extname(path)) === -1) {
+    if (!this._useFile({ stats: { isDirectory () { return false } }, path: path })) {
       return true
     }
 
