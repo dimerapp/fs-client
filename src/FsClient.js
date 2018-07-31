@@ -28,11 +28,12 @@ const Watcher = require('./Watcher')
  * @param {Object} config
  */
 class FsClient {
-  constructor (basePath, config) {
+  constructor (basePath, config, markdownOptions) {
     this.paths = utils.paths(basePath)
     this.versions = []
-    this.markdownExtensions = ['.md', '.markdown']
+    this.markdownExtensions = ['.md', '.markdown', '.mkd', '.mkdown']
     this.watcher = null
+    this.markdownOptions = markdownOptions
 
     config.versions.forEach((version) => (this.addVersion(version)))
   }
@@ -110,7 +111,7 @@ class FsClient {
    * @private
    */
   async _versionContentTree ({ version, filesTree }) {
-    const treeInstance = new Tree(version.absPath, filesTree)
+    const treeInstance = new Tree(version.absPath, filesTree, this.markdownOptions)
 
     const tree = await treeInstance.process()
     return { version, tree }

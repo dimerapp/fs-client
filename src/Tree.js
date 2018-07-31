@@ -19,9 +19,10 @@ const debug = require('debug')('dimer:fsclient')
  * @param {Array} tree
  */
 class Tree {
-  constructor (basePath, tree) {
+  constructor (basePath, tree, markdownOptions) {
     this.basePath = basePath
     this.tree = tree
+    this.markdownOptions = markdownOptions || {}
   }
 
   /**
@@ -35,7 +36,7 @@ class Tree {
    */
   async _processFile (filePath) {
     debug('processing file %s', filePath)
-    const file = new Dfile(filePath, this.basePath)
+    const file = new Dfile(filePath, this.basePath, this.markdownOptions)
     await file.parse()
     return file
   }

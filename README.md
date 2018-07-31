@@ -38,21 +38,28 @@ const { join } = require('path')
 const basePath = process.cwd()
 
 const { errors, config } = await (new ConfigStore(join(basePath, 'dimer.json'))).parse()
-const client = new FsClient(basePath, config)
+const client = new FsClient(basePath, config, {
+  async onUrl () {
+
+  }
+})
 
 const tree = await client.tree()
 ```
+
+#### Allowed files
+The files must have `.md`, `.markdown`, `.mkd` and `.mkdown` extensions, otherwise they will be ignored.
 
 ## Watch for changes
 
 ```js
 client.watch(async (event, arg) => {
-  if (event === 'add' || event === 'change') {
+  if (event === 'add:doc' || event === 'change:doc') {
     console.log(arg) // instance of dFile
   }
 
-  if (event === 'unlink') {
-    console.log(arg) // will be file path
+  if (event === 'unlink:doc') {
+    console.log(arg) // will be { version: object, baseName: string }
   }
 
   if (event === 'unlink:version') {
@@ -75,6 +82,12 @@ Following is the API for the watcher.
 ```js
 const FsClient = require('@dimerapp/fs-client')
 const client = new FsClient(basePath, config)
+
+// or with markdown options
+const client = new FsClient(basePath, config, {
+  async onUrl () {
+  }
+})
 ```
 
 #### filesTree
