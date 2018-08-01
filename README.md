@@ -33,14 +33,15 @@ yarn add @dimerapp/fs-client
 ```js
 const FsClient = require('@dimerapp/fs-client')
 const ConfigParser = require('@dimerapp/config-parser')
-const { join } = require('path')
+const Context = require('@dimerapp/context')
 
 const basePath = process.cwd()
+const ctx = new Context(basePath)
 
-const { errors, config } = await (new ConfigStore(join(basePath, 'dimer.json'))).parse()
-const client = new FsClient(basePath, config, {
+const { errors, config } = await (new (new ConfigParser(ctx))).parse()
+
+const client = new FsClient(ctx, config.versions, {
   async onUrl () {
-
   }
 })
 
@@ -81,10 +82,10 @@ Following is the API for the watcher.
 
 ```js
 const FsClient = require('@dimerapp/fs-client')
-const client = new FsClient(basePath, config)
+const client = new FsClient(ctx, versions)
 
 // or with markdown options
-const client = new FsClient(basePath, config, {
+const client = new FsClient(ctx, versions, {
   async onUrl () {
   }
 })
