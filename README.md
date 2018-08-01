@@ -40,12 +40,17 @@ const ctx = new Context(basePath)
 
 const { errors, config } = await (new (new ConfigParser(ctx))).parse()
 
-const client = new FsClient(ctx, config.versions, {
+const client = new FsClient(ctx, config.versions)
+const tree = await client.tree()
+```
+
+You can pass `markdownOptions` to `dfile` by setting them on the ctx.
+
+```js
+ctx.set('lib-name', 'markdownOptions', {
   async onUrl () {
   }
 })
-
-const tree = await client.tree()
 ```
 
 #### Allowed files
@@ -80,15 +85,13 @@ client.watch(async (event, arg) => {
 ## Fs client API
 Following is the API for the watcher.
 
+#### constructor
 ```js
 const FsClient = require('@dimerapp/fs-client')
 const client = new FsClient(ctx, versions)
 
 // or with markdown options
-const client = new FsClient(ctx, versions, {
-  async onUrl () {
-  }
-})
+const client = new FsClient(ctx, versions)
 ```
 
 #### filesTree
