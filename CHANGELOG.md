@@ -1,3 +1,13 @@
+<a name="1.0.7"></a>
+## [1.0.7](https://github.com/dimerapp/fs-client/compare/v1.0.6...v1.0.7) (2018-08-01)
+
+
+### Bug Fixes
+
+* **watcher:** pass this.markdownOptions to watcher file instance ([9a02026](https://github.com/dimerapp/fs-client/commit/9a02026))
+
+
+
 <a name="1.0.6"></a>
 ## [1.0.6](https://github.com/dimerapp/fs-client/compare/v1.0.5...v1.0.6) (2018-07-31)
 
