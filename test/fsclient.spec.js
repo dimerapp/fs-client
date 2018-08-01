@@ -11,22 +11,14 @@ const test = require('japa')
 const { join } = require('path')
 const fs = require('fs-extra')
 const isCI = require('is-ci')
+const Context = require('@dimerapp/context')
 
 const skip = (...args) => isCI ? test.skip(...args) : test(...args)
 
 const FsClient = require('../src/FsClient')
 const basePath = join(__dirname, 'app')
 
-const ctx = {
-  paths: {
-    versionDocsPath (version) {
-      return join(basePath, version)
-    },
-    configFile () {
-      return join(basePath, 'dimer.json')
-    }
-  }
-}
+const ctx = new Context(basePath)
 
 class FakeWatcher {
   constructor () {

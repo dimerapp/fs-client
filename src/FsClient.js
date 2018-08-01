@@ -30,7 +30,9 @@ class FsClient {
   constructor (ctx, versions) {
     ow(versions, ow.array.label('versions'))
 
-    this.ctx = ctx
+    this.paths = ctx.get('paths')
+    this.markdownOptions = ctx.get('markdownOptions')
+
     this.versions = []
     this.markdownExtensions = ['.md', '.markdown', '.mkd', '.mkdown']
     this.watcher = null
@@ -111,7 +113,7 @@ class FsClient {
    * @private
    */
   async _versionContentTree ({ version, filesTree }) {
-    const treeInstance = new Tree(version.absPath, filesTree, this.ctx.markdownOptions)
+    const treeInstance = new Tree(version.absPath, filesTree, this.markdownOptions)
 
     const tree = await treeInstance.process()
     return { version, tree }
@@ -203,7 +205,7 @@ class FsClient {
         throw new Error(`${path} file is not part of version tree`)
       }
 
-      const file = new Dfile(path, version.absPath, this.ctx.markdownOptions)
+      const file = new Dfile(path, version.absPath, this.markdownOptions)
       await file.parse()
 
       return { event: `${event}:doc`, data: { version, file } }
@@ -256,7 +258,7 @@ class FsClient {
    * @return {Object}
    */
   addVersion (version) {
-    const location = this.ctx.paths.versionDocsPath(version.location)
+    const location = this.paths.versionDocsPath(version.location)
     version = Object.assign({ absPath: location }, version)
 
     const existingVersion = this.versions.find((v) => v.no === version.no)
@@ -363,7 +365,7 @@ class FsClient {
     const locations = this.versions.map(({ absPath }) => absPath)
 
     if (!this.watcher) {
-      this.watcher = new Watcher(this.ctx.paths.configFile(), locations, {
+      this.watcher = new Watcher(this.paths.configFile(), locations, {
         onChange,
         ignoreEvent: this._ignoreEvent.bind(this),
         getEventData: this._getEventData.bind(this)
