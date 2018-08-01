@@ -203,7 +203,7 @@ class FsClient {
         throw new Error(`${path} file is not part of version tree`)
       }
 
-      const file = new Dfile(path, version.absPath)
+      const file = new Dfile(path, version.absPath, this.markdownOptions)
       await file.parse()
 
       return { event: `${event}:doc`, data: { version, file } }
