@@ -1,3 +1,19 @@
+<a name="1.0.8"></a>
+## [1.0.8](https://github.com/dimerapp/fs-client/compare/v1.0.7...v1.0.8) (2018-08-01)
+
+
+### Code Refactoring
+
+* use ctx instead of basePath ([98839ce](https://github.com/dimerapp/fs-client/commit/98839ce))
+
+
+### BREAKING CHANGES
+
+* fsClient accepts in total 2 arguments vs 3 earlier and 1st arg is now the ctx
+instance
+
+
+
 <a name="1.0.7"></a>
 ## [1.0.7](https://github.com/dimerapp/fs-client/compare/v1.0.6...v1.0.7) (2018-08-01)
 
