@@ -17,6 +17,17 @@ const skip = (...args) => isCI ? test.skip(...args) : test(...args)
 const FsClient = require('../src/FsClient')
 const basePath = join(__dirname, 'app')
 
+const ctx = {
+  paths: {
+    versionDocsPath (version) {
+      return join(basePath, version)
+    },
+    configFile () {
+      return join(basePath, 'dimer.json')
+    }
+  }
+}
+
 class FakeWatcher {
   constructor () {
     this.actions = []
@@ -39,9 +50,10 @@ test.group('FsClient', (group) => {
   test('raise error when version directory is missing', async (assert) => {
     assert.plan(1)
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/1.0.0'
+    }])
 
     try {
       await client.tree()
@@ -54,14 +66,10 @@ test.group('FsClient', (group) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'Hello')
     await fs.outputFile(join(basePath, 'docs/master', 'intro.txt'), 'Hello')
 
-    const client = new FsClient(basePath, {
-      versions: [
-        {
-          no: '1.0.0',
-          location: 'docs/master'
-        }
-      ]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/master'
+    }])
 
     const filesTree = await client.filesTree()
     assert.deepEqual(filesTree, [
@@ -80,14 +88,10 @@ test.group('FsClient', (group) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'Hello')
     await fs.outputFile(join(basePath, 'docs/master', '_foo.md'), 'Hello')
 
-    const client = new FsClient(basePath, {
-      versions: [
-        {
-          no: '1.0.0',
-          location: 'docs/master'
-        }
-      ]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/master'
+    }])
 
     const filesTree = await client.filesTree()
     assert.deepEqual(filesTree, [
@@ -106,14 +110,10 @@ test.group('FsClient', (group) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'Hello')
     await fs.outputFile(join(basePath, 'docs/master', '_intro/foo.md'), 'Hello')
 
-    const client = new FsClient(basePath, {
-      versions: [
-        {
-          no: '1.0.0',
-          location: 'docs/master'
-        }
-      ]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/master'
+    }])
 
     const filesTree = await client.filesTree()
     assert.deepEqual(filesTree, [
@@ -136,14 +136,10 @@ test.group('FsClient', (group) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.txt'), 'Hello')
     await fs.outputFile(join(basePath, 'docs/master', 'hello.md'), 'Hello')
 
-    const client = new FsClient(basePath, {
-      versions: [
-        {
-          no: '1.0.0',
-          location: 'docs/master'
-        }
-      ]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/master'
+    }])
 
     const tree = await client.tree()
 
@@ -161,9 +157,10 @@ test.group('FsClient', (group) => {
   })
 
   test('throw error when calling watchVersion without starting a watcher', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/1.0.0'
+    }])
 
     const fn = () => client.watchVersion({
       no: '1.0.0',
@@ -173,9 +170,7 @@ test.group('FsClient', (group) => {
   })
 
   test('add a new version to the watcher and versions list', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: []
-    })
+    const client = new FsClient(ctx, [])
 
     client.watcher = new FakeWatcher()
 
@@ -194,9 +189,10 @@ test.group('FsClient', (group) => {
   })
 
   test('update version when already exists', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/1.0.0'
+    }])
 
     client.watcher = new FakeWatcher()
 
@@ -215,18 +211,20 @@ test.group('FsClient', (group) => {
   })
 
   test('throw error when calling unwatchVersion without starting a watcher', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/1.0.0'
+    }])
 
     const fn = () => client.unwatchVersion(join(basePath, 'docs/1.0.0'))
     assert.throw(fn, 'make sure to start the watcher before calling unwatchVersion')
   })
 
   test('remove version from watcher list', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/1.0.0'
+    }])
 
     client.watcher = new FakeWatcher()
 
@@ -242,9 +240,10 @@ test.group('FsClient', (group) => {
   })
 
   test('return the version for a given file path', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/1.0.0'
+    }])
 
     client.watcher = new FakeWatcher()
     assert.deepEqual(client._getFileVersion(join(basePath, 'docs/1.0.0/intro.md')), {
@@ -255,18 +254,19 @@ test.group('FsClient', (group) => {
   })
 
   test('return undefined when file is not part of a version', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/1.0.0' }]
-    })
+    const client = new FsClient(ctx, [{
+      no: '1.0.0',
+      location: 'docs/1.0.0'
+    }])
 
     client.watcher = new FakeWatcher()
     assert.isUndefined(client._getFileVersion(join(basePath, 'docs/1.1.0/intro.md')))
   })
 
   test('return correct version when incremental names are same', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.1.1', location: 'docs/master' }, { no: '1.0.0', location: 'docs/masternew' }]
-    })
+    const client = new FsClient(ctx, [
+      { no: '1.1.1', location: 'docs/master' }, { no: '1.0.0', location: 'docs/masternew' }
+    ])
 
     client.watcher = new FakeWatcher()
     assert.deepEqual(client._getFileVersion(join(basePath, 'docs/masternew/intro.md')), {
@@ -277,25 +277,19 @@ test.group('FsClient', (group) => {
   })
 
   test('return true from ignoreEvent when event is no add, change or unlink', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: []
-    })
+    const client = new FsClient(ctx, [])
 
     assert.isTrue(client._ignoreEvent('addDir', ''))
   })
 
   test('return true from ignoreEvent when file path is not markdown', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: []
-    })
+    const client = new FsClient(ctx, [])
 
     assert.isTrue(client._ignoreEvent('add', 'foo/intro.txt'))
   })
 
   test('return false from ignoreEvent when file is markdown and event is whitelisted', async (assert) => {
-    const client = new FsClient(basePath, {
-      versions: []
-    })
+    const client = new FsClient(ctx, [])
 
     assert.isFalse(client._ignoreEvent('add', 'foo/intro.md'))
   })
@@ -303,9 +297,7 @@ test.group('FsClient', (group) => {
   test('return file & version for add event', async (assert) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'hello world')
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
 
     const { event, data } = await client._getEventData('add', join(basePath, 'docs/master', 'intro.md'))
 
@@ -323,9 +315,7 @@ test.group('FsClient', (group) => {
   test('return file & version for change event', async (assert) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'hello world')
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
 
     const { event, data } = await client._getEventData('change', join(basePath, 'docs/master', 'intro.md'))
 
@@ -343,9 +333,7 @@ test.group('FsClient', (group) => {
   test('return version node for unlinkDir event, when directory is version root', async (assert) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'hello world')
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
     client.watcher = new FakeWatcher()
 
     const { event, data } = await client._getEventData('unlinkDir', join(basePath, 'docs/master'))
@@ -363,9 +351,7 @@ test.group('FsClient', (group) => {
   test('return path for unlinkDir event, when directory is not version root', async (assert) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'hello world')
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
     client.watcher = new FakeWatcher()
 
     const { event, data: filePath } = await client._getEventData('unlinkDir', join(basePath, 'docs/master/intro'))
@@ -376,9 +362,7 @@ test.group('FsClient', (group) => {
   test('return version and baseName for unlink event', async (assert) => {
     await fs.outputFile(join(basePath, 'docs/master', 'intro.md'), 'hello world')
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
 
     const { event, data } = await client._getEventData('unlink', join(basePath, 'docs/master', 'intro.md'))
     assert.equal(data.baseName, 'intro.md')
@@ -389,9 +373,7 @@ test.group('FsClient', (group) => {
   test('throw error when changed file is not part of the version tree', async (assert) => {
     assert.plan(1)
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
 
     try {
       await client._getEventData('add', join(basePath, 'foo', 'intro.md'))
@@ -403,9 +385,7 @@ test.group('FsClient', (group) => {
   skip('emit add event when dimer.json file is added', (assert, done) => {
     assert.plan(1)
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
 
     const dimerJSON = join(basePath, 'dimer.json')
 
@@ -427,9 +407,7 @@ test.group('FsClient', (group) => {
   skip('emit add event when new doc is added inside the docs dir', (assert, done) => {
     assert.plan(2)
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
 
     const filePath = join(basePath, 'docs/master', 'intro.md')
 
@@ -452,9 +430,7 @@ test.group('FsClient', (group) => {
 
     const filePath = join(basePath, 'docs/master', 'intro.md')
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
 
     fs
       .outputFile(filePath, 'hello')
@@ -478,9 +454,7 @@ test.group('FsClient', (group) => {
   skip('emit unlink event when new doc is removed', (assert, done) => {
     const filePath = join(basePath, 'docs/master', 'intro.md')
 
-    const client = new FsClient(basePath, {
-      versions: [{ no: '1.0.0', location: 'docs/master' }]
-    })
+    const client = new FsClient(ctx, [{ no: '1.0.0', location: 'docs/master' }])
 
     fs
       .outputFile(filePath, 'hello')
@@ -508,7 +482,7 @@ test.group('FsClient', (group) => {
 
     const filePath = join(basePath, 'docs/1.0.0', 'intro.md')
 
-    const client = new FsClient(basePath, { versions: [] })
+    const client = new FsClient(ctx, [])
 
     client.watch(function (event, { file }) {
       client.watcher.close()

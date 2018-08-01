@@ -13,7 +13,6 @@ const fs = require('fs-extra')
 const Dfile = require('@dimerapp/dfile')
 const ow = require('ow')
 const debug = require('debug')('dimer:fsclient')
-const utils = require('@dimerapp/utils')
 
 const Tree = require('./Tree')
 const Watcher = require('./Watcher')
@@ -24,18 +23,19 @@ const Watcher = require('./Watcher')
  *
  * @class FsClient
  *
- * @param {String} basePath
- * @param {Object} config
+ * @param {Context} ctx
+ * @param {Array} versions
  */
 class FsClient {
-  constructor (basePath, config, markdownOptions) {
-    this.paths = utils.paths(basePath)
+  constructor (ctx, versions) {
+    ow(versions, ow.array.label('versions'))
+
+    this.ctx = ctx
     this.versions = []
     this.markdownExtensions = ['.md', '.markdown', '.mkd', '.mkdown']
     this.watcher = null
-    this.markdownOptions = markdownOptions
 
-    config.versions.forEach((version) => (this.addVersion(version)))
+    versions.forEach((version) => (this.addVersion(version)))
   }
 
   /**
@@ -111,7 +111,7 @@ class FsClient {
    * @private
    */
   async _versionContentTree ({ version, filesTree }) {
-    const treeInstance = new Tree(version.absPath, filesTree, this.markdownOptions)
+    const treeInstance = new Tree(version.absPath, filesTree, this.ctx.markdownOptions)
 
     const tree = await treeInstance.process()
     return { version, tree }
@@ -203,7 +203,7 @@ class FsClient {
         throw new Error(`${path} file is not part of version tree`)
       }
 
-      const file = new Dfile(path, version.absPath, this.markdownOptions)
+      const file = new Dfile(path, version.absPath, this.ctx.markdownOptions)
       await file.parse()
 
       return { event: `${event}:doc`, data: { version, file } }
@@ -256,7 +256,7 @@ class FsClient {
    * @return {Object}
    */
   addVersion (version) {
-    const location = this.paths.versionDocsPath(version.location)
+    const location = this.ctx.paths.versionDocsPath(version.location)
     version = Object.assign({ absPath: location }, version)
 
     const existingVersion = this.versions.find((v) => v.no === version.no)
@@ -363,7 +363,7 @@ class FsClient {
     const locations = this.versions.map(({ absPath }) => absPath)
 
     if (!this.watcher) {
-      this.watcher = new Watcher(this.paths.configFile(), locations, {
+      this.watcher = new Watcher(this.ctx.paths.configFile(), locations, {
         onChange,
         ignoreEvent: this._ignoreEvent.bind(this),
         getEventData: this._getEventData.bind(this)
