@@ -102,7 +102,7 @@ class Watcher {
      * with `config:`
      */
     if (path === this.configFilePath) {
-      this.onChange(`config:${event}`)
+      this.onChange(`${event}:config`)
       return
     }
 
@@ -127,7 +127,9 @@ class Watcher {
     } catch (error) {
       try {
         await this.onChange('error', error)
-      } catch (err) {}
+      } catch (err) {
+        throw err
+      }
     }
   }
 }

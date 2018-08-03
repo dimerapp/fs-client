@@ -61,11 +61,11 @@ The files must have `.md`, `.markdown`, `.mkd` and `.mkdown` extensions, otherwi
 ```js
 client.watch(async (event, arg) => {
   if (event === 'add:doc' || event === 'change:doc') {
-    console.log(arg) // instance of dFile
+    console.log(arg)
   }
 
   if (event === 'unlink:doc') {
-    console.log(arg) // will be { version: object, baseName: string }
+    console.log(arg)
   }
 
   if (event === 'unlink:version') {

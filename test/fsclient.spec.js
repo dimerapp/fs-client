@@ -383,7 +383,7 @@ test.group('FsClient', (group) => {
       client.watcher.close()
 
       done(() => {
-        assert.equal(event, 'config:add')
+        assert.equal(event, 'add:config')
       })
     })
 
