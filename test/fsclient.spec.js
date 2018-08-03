@@ -69,7 +69,8 @@ test.group('FsClient', (group) => {
         version: {
           location: 'docs/master',
           no: '1.0.0',
-          absPath: join(basePath, 'docs/master')
+          absPath: join(basePath, 'docs/master'),
+          scanned: true
         },
         filesTree: [join(basePath, 'docs/master', 'intro.md')]
       }
@@ -91,7 +92,8 @@ test.group('FsClient', (group) => {
         version: {
           location: 'docs/master',
           no: '1.0.0',
-          absPath: join(basePath, 'docs/master')
+          absPath: join(basePath, 'docs/master'),
+          scanned: true
         },
         filesTree: [join(basePath, 'docs/master', 'intro.md')]
       }
@@ -113,7 +115,8 @@ test.group('FsClient', (group) => {
         version: {
           location: 'docs/master',
           no: '1.0.0',
-          absPath: join(basePath, 'docs/master')
+          absPath: join(basePath, 'docs/master'),
+          scanned: true
         },
         filesTree: [
           join(basePath, 'docs/master', 'intro.md'),
@@ -139,7 +142,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(tree[0].version, {
       location: 'docs/master',
       no: '1.0.0',
-      absPath: join(basePath, 'docs/master')
+      absPath: join(basePath, 'docs/master'),
+      scanned: true
     })
 
     assert.deepEqual(tree[0].tree.map((file) => file.filePath), [
@@ -174,7 +178,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(client.versions, [{
       no: '1.0.0',
       location: 'docs/master',
-      absPath: join(basePath, 'docs/master')
+      absPath: join(basePath, 'docs/master'),
+      scanned: false
     }])
 
     assert.deepEqual(client.watcher.actions, [{ action: 'watch', dir: join(basePath, 'docs/master') }])
@@ -196,7 +201,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(client.versions, [{
       no: '1.0.0',
       location: 'docs/master',
-      absPath: join(basePath, 'docs/master')
+      absPath: join(basePath, 'docs/master'),
+      scanned: false
     }])
 
     assert.deepEqual(client.watcher.actions, [{ action: 'watch', dir: join(basePath, 'docs/master') }])
@@ -239,7 +245,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(client._getFileVersions(join(basePath, 'docs/1.0.0/intro.md')), [{
       no: '1.0.0',
       location: 'docs/1.0.0',
-      absPath: join(basePath, 'docs/1.0.0')
+      absPath: join(basePath, 'docs/1.0.0'),
+      scanned: false
     }])
   })
 
@@ -262,7 +269,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(client._getFileVersions(join(basePath, 'docs/masternew/intro.md')), [{
       no: '1.0.0',
       location: 'docs/masternew',
-      absPath: join(basePath, 'docs/masternew')
+      absPath: join(basePath, 'docs/masternew'),
+      scanned: false
     }])
   })
 
@@ -294,7 +302,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(data.versions, [{
       no: '1.0.0',
       location: 'docs/master',
-      absPath: join(basePath, 'docs/master')
+      absPath: join(basePath, 'docs/master'),
+      scanned: false
     }])
 
     assert.equal(data.file.baseName, 'intro.md')
@@ -312,7 +321,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(data.versions, [{
       no: '1.0.0',
       location: 'docs/master',
-      absPath: join(basePath, 'docs/master')
+      absPath: join(basePath, 'docs/master'),
+      scanned: false
     }])
 
     assert.equal(data.file.baseName, 'intro.md')
@@ -331,7 +341,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(data, [{
       no: '1.0.0',
       location: 'docs/master',
-      absPath: join(basePath, 'docs/master')
+      absPath: join(basePath, 'docs/master'),
+      scanned: false
     }])
 
     assert.equal(event, 'unlink:version')
@@ -489,7 +500,7 @@ test.group('FsClient', (group) => {
     })
   }).timeout(6000)
 
-  test('do no remove version from watcher list when it\'s location is shared', async (assert) => {
+  test('do not remove version from watcher list when it\'s location is shared', async (assert) => {
     const client = new FsClient(ctx, [
       {
         no: '1.0.0',
@@ -508,7 +519,8 @@ test.group('FsClient', (group) => {
     assert.deepEqual(client.versions, [{
       no: '1.0.1',
       location: 'docs/1.0.0',
-      absPath: join(basePath, 'docs/1.0.0')
+      absPath: join(basePath, 'docs/1.0.0'),
+      scanned: false
     }])
 
     assert.deepEqual(client.watcher.actions, [])
@@ -528,12 +540,14 @@ test.group('FsClient', (group) => {
       {
         no: '1.0.0',
         location: 'docs/master',
-        absPath: join(basePath, 'docs/master')
+        absPath: join(basePath, 'docs/master'),
+        scanned: false
       },
       {
         no: '1.0.1',
         location: 'docs/master',
-        absPath: join(basePath, 'docs/master')
+        absPath: join(basePath, 'docs/master'),
+        scanned: false
       }
     ])
 
@@ -554,8 +568,8 @@ test.group('FsClient', (group) => {
     const { event, data } = await client._getEventData('unlinkDir', join(basePath, 'docs/master'))
 
     assert.deepEqual(data, [
-      { no: '1.0.0', location: 'docs/master', absPath: join(basePath, 'docs/master') },
-      { no: '1.0.1', location: 'docs/master', absPath: join(basePath, 'docs/master') }
+      { no: '1.0.0', location: 'docs/master', absPath: join(basePath, 'docs/master'), scanned: false },
+      { no: '1.0.1', location: 'docs/master', absPath: join(basePath, 'docs/master'), scanned: false }
     ])
 
     assert.equal(event, 'unlink:version')
