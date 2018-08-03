@@ -93,7 +93,10 @@ class FsClient {
                 filesTree.push(item.path)
               }
             })
-            .on('end', () => (resolve({ filesTree, version })))
+            .on('end', () => {
+              version.scanned = true
+              resolve({ filesTree, version })
+            })
             .on('error', reject)
         })
         .catch(reject)
@@ -259,7 +262,7 @@ class FsClient {
    */
   addVersion (version) {
     const location = this.paths.versionDocsPath(version.location)
-    version = Object.assign({ absPath: location }, version)
+    version = Object.assign({ absPath: location, scanned: false }, version)
 
     const existingVersion = this.versions.find((v) => v.no === version.no)
 
@@ -280,7 +283,7 @@ class FsClient {
    * @return {Array}
    */
   filesTree () {
-    return Promise.all(this.versions.map(this._versionTree.bind(this)))
+    return Promise.all(this.versions.filter(({ scanned }) => !scanned).map(this._versionTree.bind(this)))
   }
 
   /**
