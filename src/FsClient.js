@@ -171,10 +171,10 @@ class FsClient {
      * event.
      */
     if (event === 'unlinkDir') {
-      const version = this._getVersionForPath(path)
-      if (version) {
-        this.unwatchVersion(path)
-        return { event: 'unlink:version', data: version }
+      const versions = this._getVersionsForPath(path)
+      if (versions.length) {
+        versions.forEach((version) => (this.unwatchVersion(version)))
+        return { event: 'unlink:version', data: versions }
       }
     }
 
@@ -184,14 +184,14 @@ class FsClient {
      * with file baseName
      */
     if (event === 'unlink') {
-      const version = this._getFileVersion(path)
-      if (!version) {
+      const versions = this._getFileVersions(path)
+      if (!versions.length) {
         throw new Error(`${path} file is not part of version tree`)
       }
 
       return {
         event: 'unlink:doc',
-        data: { version, baseName: path.replace(`${version.absPath}${sep}`, '') }
+        data: { versions, baseName: path.replace(`${versions[0].absPath}${sep}`, '') }
       }
     }
 
@@ -200,15 +200,15 @@ class FsClient {
      * return the dFile instance.
      */
     if (['add', 'change'].indexOf(event) > -1) {
-      const version = this._getFileVersion(path)
-      if (!version) {
+      const versions = this._getFileVersions(path)
+      if (!versions.length) {
         throw new Error(`${path} file is not part of version tree`)
       }
 
-      const file = new Dfile(path, version.absPath, this.markdownOptions)
+      const file = new Dfile(path, versions[0].absPath, this.markdownOptions)
       await file.parse()
 
-      return { event: `${event}:doc`, data: { version, file } }
+      return { event: `${event}:doc`, data: { versions, file } }
     }
 
     /**
@@ -222,7 +222,7 @@ class FsClient {
    * Returns the version for a given changed file. Chances are
    * this can be undefined
    *
-   * @method _getFileVersion
+   * @method _getFileVersions
    *
    * @param  {String}        location
    *
@@ -230,21 +230,21 @@ class FsClient {
    *
    * @private
    */
-  _getFileVersion (location) {
-    return this.versions.find((version) => location.startsWith(`${version.absPath}${sep}`))
+  _getFileVersions (location) {
+    return this.versions.filter((version) => location.startsWith(`${version.absPath}${sep}`))
   }
 
   /**
    * Returns the version if it's absPath is same as the location
    *
-   * @method _getVersionForPath
+   * @method _getVersionsForPath
    *
    * @param  {String}           location
    *
    * @return {Object|Undefined}
    */
-  _getVersionForPath (location) {
-    return this.versions.find((version) => location === version.absPath)
+  _getVersionsForPath (location) {
+    return this.versions.filter((version) => location === version.absPath)
   }
 
   /**
@@ -310,15 +310,37 @@ class FsClient {
    *
    * @return {void}
    */
-  unwatchVersion (location) {
-    ow(location, ow.string.label('location').nonEmpty)
+  unwatchVersion (version) {
+    ow(version.no, ow.string.label('version.no').nonEmpty)
 
     if (!this.watcher) {
       throw new Error('make sure to start the watcher before calling unwatchVersion')
     }
 
-    debug('attempt to unwatch location %s', location)
-    this.watcher.unwatch(location)
+    const versionIndex = this.versions.findIndex(({ no }) => no === version.no)
+    const sharedLocation = !!this.versions.find(({ location, no }) => {
+      return location === version.location && no !== version.no
+    })
+
+    /**
+     * Return when version not found
+     */
+    if (versionIndex === -1) {
+      return
+    }
+
+    const [ removedVersion ] = this.versions.splice(versionIndex, 1)
+
+    /**
+     * Return if remvoed version location is shared with some
+     * other version. We don't want to unwatch it.
+     */
+    if (sharedLocation) {
+      return
+    }
+
+    debug('attempt to unwatch location %s', removedVersion.absPath)
+    this.watcher.unwatch(removedVersion.absPath)
   }
 
   /**

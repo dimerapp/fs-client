@@ -1,3 +1,15 @@
+<a name="1.0.10"></a>
+## [1.0.10](https://github.com/dimerapp/fs-client/compare/v1.0.9...v1.0.10) (2018-08-03)
+
+
+### Bug Fixes
+
+* accept version object vs location when calling unWatch ([cea5d8b](https://github.com/dimerapp/fs-client/commit/cea5d8b))
+* return versions array for events ([e428de9](https://github.com/dimerapp/fs-client/commit/e428de9))
+* unwatch version location, only when it's not shared ([38d2b8c](https://github.com/dimerapp/fs-client/commit/38d2b8c))
+
+
+
 <a name="1.0.9"></a>
 ## [1.0.9](https://github.com/dimerapp/fs-client/compare/v1.0.8...v1.0.9) (2018-08-01)
 
