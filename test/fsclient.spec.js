@@ -208,7 +208,7 @@ test.group('FsClient', (group) => {
       location: 'docs/1.0.0'
     }])
 
-    const fn = () => client.unwatchVersion(join(basePath, 'docs/1.0.0'))
+    const fn = () => client.unwatchVersion({ no: '1.0.0', location: join(basePath, 'docs/1.0.0') })
     assert.throw(fn, 'make sure to start the watcher before calling unwatchVersion')
   })
 
@@ -220,15 +220,13 @@ test.group('FsClient', (group) => {
 
     client.watcher = new FakeWatcher()
 
-    client.unwatchVersion(join(basePath, 'docs/1.0.0'))
+    client.unwatchVersion({ no: '1.0.0', location: 'docs/1.0.0' })
+    assert.deepEqual(client.versions, [])
 
-    assert.deepEqual(client.versions, [{
-      no: '1.0.0',
-      location: 'docs/1.0.0',
-      absPath: join(basePath, 'docs/1.0.0')
+    assert.deepEqual(client.watcher.actions, [{
+      action: 'unwatch',
+      dir: join(basePath, 'docs/1.0.0')
     }])
-
-    assert.deepEqual(client.watcher.actions, [{ action: 'unwatch', dir: join(basePath, 'docs/1.0.0') }])
   })
 
   test('return the version for a given file path', async (assert) => {

@@ -173,7 +173,7 @@ class FsClient {
     if (event === 'unlinkDir') {
       const version = this._getVersionForPath(path)
       if (version) {
-        this.unwatchVersion(path)
+        this.unwatchVersion(version)
         return { event: 'unlink:version', data: version }
       }
     }
@@ -310,15 +310,20 @@ class FsClient {
    *
    * @return {void}
    */
-  unwatchVersion (location) {
-    ow(location, ow.string.label('location').nonEmpty)
+  unwatchVersion (version) {
+    ow(version.no, ow.string.label('version.no').nonEmpty)
 
     if (!this.watcher) {
       throw new Error('make sure to start the watcher before calling unwatchVersion')
     }
 
-    debug('attempt to unwatch location %s', location)
-    this.watcher.unwatch(location)
+    const versionIndex = this.versions.findIndex(({ no }) => version.no === no)
+
+    if (versionIndex > -1) {
+      const [removedVersion] = this.versions.splice(versionIndex, 1)
+      debug('attempt to unwatch location %s', removedVersion.absPath)
+      this.watcher.unwatch(removedVersion.absPath)
+    }
   }
 
   /**
