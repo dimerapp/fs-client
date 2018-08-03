@@ -317,13 +317,30 @@ class FsClient {
       throw new Error('make sure to start the watcher before calling unwatchVersion')
     }
 
-    const versionIndex = this.versions.findIndex(({ no }) => version.no === no)
+    const versionIndex = this.versions.findIndex(({ no }) => no === version.no)
+    const sharedLocation = !!this.versions.find(({ location, no }) => {
+      return location === version.location && no !== version.no
+    })
 
-    if (versionIndex > -1) {
-      const [removedVersion] = this.versions.splice(versionIndex, 1)
-      debug('attempt to unwatch location %s', removedVersion.absPath)
-      this.watcher.unwatch(removedVersion.absPath)
+    /**
+     * Return when version not found
+     */
+    if (versionIndex === -1) {
+      return
     }
+
+    const [ removedVersion ] = this.versions.splice(versionIndex, 1)
+
+    /**
+     * Return if remvoed version location is shared with some
+     * other version. We don't want to unwatch it.
+     */
+    if (sharedLocation) {
+      return
+    }
+
+    debug('attempt to unwatch location %s', removedVersion.absPath)
+    this.watcher.unwatch(removedVersion.absPath)
   }
 
   /**

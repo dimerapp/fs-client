@@ -488,4 +488,29 @@ test.group('FsClient', (group) => {
       fs.outputFile(filePath)
     })
   }).timeout(6000)
+
+  test('do no remove version from watcher list when it\'s location is shared', async (assert) => {
+    const client = new FsClient(ctx, [
+      {
+        no: '1.0.0',
+        location: 'docs/1.0.0'
+      },
+      {
+        no: '1.0.1',
+        location: 'docs/1.0.0'
+      }
+    ])
+
+    client.watcher = new FakeWatcher()
+
+    client.unwatchVersion({ no: '1.0.0', location: 'docs/1.0.0' })
+
+    assert.deepEqual(client.versions, [{
+      no: '1.0.1',
+      location: 'docs/1.0.0',
+      absPath: join(basePath, 'docs/1.0.0')
+    }])
+
+    assert.deepEqual(client.watcher.actions, [])
+  })
 })
