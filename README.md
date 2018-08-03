@@ -72,11 +72,11 @@ client.watch(async (event, arg) => {
     console.log('removed directory for a given version')
   }
 
-  if (event === 'config:change' || event === 'config:add') {
+  if (event === 'change:config' || event === 'add:config') {
     console.log('config file changed')
   }
 
-  if (event === 'config:unlink') {
+  if (event === 'unlink:config') {
     console.log('config file removed, stop watcher')
   }
 })
@@ -135,6 +135,20 @@ client.unwatchVersion('docs/master')
 
 [![travis-image]][travis-url]
 [![npm-image]][npm-url]
+
+## Events
+Following is the list of events and data associated with them.
+
+| Event | Data | Description |
+|-------|------|-------------|
+| add:doc | `{ versions: [], file }` | Data includes an array of versions and the `Dfile` object for that given file. |
+| change:doc | `{ versions: [], file }` | Data includes an array of versions and the `Dfile` object for that given file. |
+| unlink:doc | `{ versions: [], baseName }` | Data includes an array of versions and `baseName` of the file that was removed. |
+| unlink:version | `[{ no: '1.0.0' }]` | Data includes an array of versions that shares the directory which was removed. |
+| add:config | `undefined` | Config file created |
+| change:config | `undefined` | Config file changed |
+| unlink:config | `undefined` | Config file removed |
+| error | `Error` | There was an error |
 
 ## Change log
 
