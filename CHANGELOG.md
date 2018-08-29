@@ -1,3 +1,18 @@
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/dimerapp/fs-client/compare/v1.0.11...v2.0.0) (2018-08-29)
+
+
+### Features
+
+* **zones:** add support for zones ([a14ed6f](https://github.com/dimerapp/fs-client/commit/a14ed6f))
+
+
+### BREAKING CHANGES
+
+* **zones:** instantiating a new client requires and array of zones and not versions
+
+
+
 <a name="1.0.11"></a>
 ## [1.0.11](https://github.com/dimerapp/fs-client/compare/v1.0.10...v1.0.11) (2018-08-03)
 
