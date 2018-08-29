@@ -27,8 +27,8 @@ const Watcher = require('./Watcher')
  * @param {Array} versions
  */
 class FsClient {
-  constructor (ctx, versions) {
-    ow(versions, ow.array.label('versions'))
+  constructor (ctx, zones) {
+    ow(zones, ow.array.label('zones'))
 
     this.paths = ctx.get('paths')
     this.markdownOptions = ctx.get('markdownOptions')
@@ -37,7 +37,7 @@ class FsClient {
     this.markdownExtensions = ['.md', '.markdown', '.mkd', '.mkdown']
     this.watcher = null
 
-    versions.forEach((version) => (this.addVersion(version)))
+    zones.forEach((zone) => (zone.versions.forEach((version) => (this.addVersion(zone.slug, version)))))
   }
 
   /**
@@ -176,7 +176,7 @@ class FsClient {
     if (event === 'unlinkDir') {
       const versions = this._getVersionsForPath(path)
       if (versions.length) {
-        versions.forEach((version) => (this.unwatchVersion(version)))
+        versions.forEach((version) => (this.unwatchVersion(version.zoneSlug, version)))
         return { event: 'unlink:version', data: versions }
       }
     }
@@ -238,13 +238,13 @@ class FsClient {
   }
 
   /**
-   * Returns the version if it's absPath is same as the location
+   * Returns the versions if their absPath are same as the location
    *
    * @method _getVersionsForPath
    *
    * @param  {String}           location
    *
-   * @return {Object|Undefined}
+   * @return {Array|Undefined}
    */
   _getVersionsForPath (location) {
     return this.versions.filter((version) => location === version.absPath)
@@ -256,15 +256,21 @@ class FsClient {
    *
    * @method addVersion
    *
+   * @param  {String}   zoneSlug
    * @param  {Object}   version
    *
    * @return {Object}
    */
-  addVersion (version) {
-    const location = this.paths.versionDocsPath(version.location)
-    version = Object.assign({ absPath: location, scanned: false }, version)
+  addVersion (zoneSlug, version) {
+    ow(zoneSlug, ow.string.label('zoneSlug').nonEmpty)
+    ow(version, ow.object.label('version').hasKeys('no', 'location'))
+    ow(version.no, ow.string.label('version.no').nonEmpty)
+    ow(version.location, ow.string.label('version.location').nonEmpty)
 
-    const existingVersion = this.versions.find((v) => v.no === version.no)
+    const location = this.paths.versionDocsPath(version.location)
+    version = Object.assign({ absPath: location, scanned: false, zoneSlug }, version)
+
+    const existingVersion = this.versions.find((v) => v.no === version.no && v.zoneSlug === zoneSlug)
 
     if (!existingVersion) {
       this.versions.push(version)
@@ -309,20 +315,22 @@ class FsClient {
    *
    * @method unwatchVersion
    *
+   * @param  {String}       zoneSlug
    * @param  {String}       location
    *
    * @return {void}
    */
-  unwatchVersion (version) {
+  unwatchVersion (zoneSlug, version) {
+    ow(zoneSlug, ow.string.label('zoneSlug').nonEmpty)
     ow(version.no, ow.string.label('version.no').nonEmpty)
 
     if (!this.watcher) {
       throw new Error('make sure to start the watcher before calling unwatchVersion')
     }
 
-    const versionIndex = this.versions.findIndex(({ no }) => no === version.no)
-    const sharedLocation = !!this.versions.find(({ location, no }) => {
-      return location === version.location && no !== version.no
+    const versionIndex = this.versions.findIndex((v) => v.no === version.no && v.zoneSlug === zoneSlug)
+    const sharedLocation = !!this.versions.find((v) => {
+      return v.location === version.location && (v.no !== version.no || v.zoneSlug !== zoneSlug)
     })
 
     /**
@@ -351,11 +359,13 @@ class FsClient {
    *
    * @method watchVersion
    *
+   * @param  {String}     zoneSlug
    * @param  {Object}     version
    *
    * @return {void}
    */
-  watchVersion (version) {
+  watchVersion (zoneSlug, version) {
+    ow(zoneSlug, ow.string.label('zoneSlug').nonEmpty)
     ow(version, ow.object.label('version').hasKeys('no', 'location'))
     ow(version.location, ow.string.label('version.location').nonEmpty)
     ow(version.no, ow.string.label('version.no').nonEmpty)
@@ -364,7 +374,7 @@ class FsClient {
       throw new Error('make sure to start the watcher before calling watchVersion')
     }
 
-    const addedVersion = this.addVersion(version)
+    const addedVersion = this.addVersion(zoneSlug, version)
     this.watcher.watch(addedVersion.absPath)
   }
 
