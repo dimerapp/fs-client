@@ -20,17 +20,17 @@
   "author": "virk",
   "license": "MIT",
   "devDependencies": {
-    "@adonisjs/mrm-preset": "^1.0.10",
-    "@dimerapp/context": "^1.0.1",
+    "@adonisjs/mrm-preset": "^1.0.11",
+    "@dimerapp/context": "^2.0.0",
     "commitizen": "^2.10.1",
     "cz-conventional-changelog": "^2.1.0",
     "fs-extra": "^7.0.0",
-    "is-ci": "^1.1.0",
+    "is-ci": "^1.2.0",
     "japa": "^1.0.6",
     "japa-cli": "^1.0.1",
     "mrm": "^1.2.1",
     "pkg-ok": "^2.2.0",
-    "standard": "^11.0.1"
+    "standard": "^12.0.0"
   },
   "config": {
     "commitizen": {
@@ -47,7 +47,7 @@
     "@dimerapp/dfile": "^1.0.11",
     "chokidar": "^2.0.4",
     "debug": "^3.1.0",
-    "klaw": "^2.1.1",
+    "klaw": "^3.0.0",
     "ow": "^0.6.0"
   },
   "directories": {
