@@ -40,7 +40,7 @@ const ctx = new Context(basePath)
 
 const { errors, config } = await (new (new ConfigParser(ctx))).parse()
 
-const client = new FsClient(ctx, config.versions)
+const client = new FsClient(ctx, config.zones)
 const tree = await client.tree()
 ```
 
@@ -88,10 +88,12 @@ Following is the API for the watcher.
 #### constructor
 ```js
 const FsClient = require('@dimerapp/fs-client')
-const client = new FsClient(ctx, versions)
+const client = new FsClient(ctx, zones)
 
 // or with markdown options
-const client = new FsClient(ctx, versions)
+ctx.set('markdownOptions', {
+})
+const client = new FsClient(ctx, zones)
 ```
 
 #### filesTree
@@ -116,21 +118,21 @@ client.watch(() => {
 })
 ```
 
-#### watchVersion(version)
+#### watchVersion(zoneSlug, version)
 Tell watcher to start watching a new version when it is added to the config file.
 
 ```js
-client.watchVersion({
+client.watchVersion('guides', {
   no: '1.0.0',
   location: 'docs/1.0.0'
 })
 ```
 
-#### unwatchVersion(location)
+#### unwatchVersion(zoneSlug, location)
 Tell watcher to stop watching files for a given version, when it is removed from the config file.
 
 ```js
-client.unwatchVersion('docs/master')
+client.unwatchVersion('guides', docs/master')
 ```
 
 [![travis-image]][travis-url]
@@ -138,6 +140,9 @@ client.unwatchVersion('docs/master')
 
 ## Events
 Following is the list of events and data associated with them.
+
+> The versions inside the events will have additional property called `zoneSlug` attached on them. You can use that
+property to add data to the datastore.
 
 | Event | Data | Description |
 |-------|------|-------------|
