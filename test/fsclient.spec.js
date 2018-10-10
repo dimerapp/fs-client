@@ -506,10 +506,8 @@ test.group('FsClient', (group) => {
 
     client.watch(function (event) {
       client.watcher.close()
-
-      done(() => {
-        assert.equal(event, 'add:config')
-      })
+      assert.equal(event, 'add:config')
+      done()
     })
 
     client.watcher.chokidar.once('ready', () => {
@@ -531,11 +529,9 @@ test.group('FsClient', (group) => {
 
     client.watch(function (event, { file }) {
       client.watcher.close()
-
-      done(() => {
-        assert.equal(event, 'add:doc')
-        assert.equal(file.filePath, filePath)
-      })
+      assert.equal(event, 'add:doc')
+      assert.equal(file.filePath, filePath)
+      done()
     })
 
     client.watcher.chokidar.once('ready', () => {
@@ -559,10 +555,9 @@ test.group('FsClient', (group) => {
         client.watch(function (event, { file }) {
           client.watcher.close()
 
-          done(() => {
-            assert.equal(event, 'change:doc')
-            assert.equal(file.filePath, filePath)
-          })
+          assert.equal(event, 'change:doc')
+          assert.equal(file.filePath, filePath)
+          done()
         })
 
         client.watcher.chokidar.once('ready', () => {
@@ -585,10 +580,9 @@ test.group('FsClient', (group) => {
       .then(() => {
         client.watch(function (event, arg) {
           if (event === 'unlink:doc') {
-            done(() => {
-              assert.equal(arg.baseName, 'intro.md')
-              client.watcher.close()
-            })
+            assert.equal(arg.baseName, 'intro.md')
+            client.watcher.close()
+            done()
           }
         })
 
@@ -610,11 +604,9 @@ test.group('FsClient', (group) => {
 
     client.watch(function (event, { file }) {
       client.watcher.close()
-
-      done(() => {
-        assert.equal(event, 'add:doc')
-        assert.equal(file.filePath, filePath)
-      })
+      assert.equal(event, 'add:doc')
+      assert.equal(file.filePath, filePath)
+      done()
     })
 
     client.watcher.chokidar.once('ready', () => {
